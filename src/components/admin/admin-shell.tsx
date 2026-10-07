@@ -23,7 +23,7 @@ export function AdminShell({ banner, children }: { banner?: ReactNode; children:
         className="flex flex-col bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:transition-[width] lg:sidebar-collapsed:w-[4.5rem]"
       >
         <div className="flex h-14 items-center gap-3 px-4 lg:h-20 lg:px-5 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0">
-          <Logo href="/admin" inverse nameClassName={hideWhenCollapsed} />
+          <Logo href="/admin" inverse nameClassName={hideWhenCollapsed} markOnlyClassName="lg:sidebar-collapsed:w-10" />
           <span className="rounded-full bg-sidebar-active px-2 py-0.5 text-xs font-medium text-sidebar-active-foreground lg:sidebar-collapsed:hidden">
             Admin
           </span>

@@ -12,8 +12,11 @@ export const siteConfig = {
   shortName: "Store",
   tagline: "Wholesale food supply for businesses across Bangladesh",
   description: "B2B wholesale ordering for restaurants, grocers and distributors across Bangladesh.",
-  /** Set `src` to a file in /public (e.g. "/brand/logo.svg") to replace the text placeholder. */
-  logo: { src: null as string | null, width: 140, height: 40 },
+  /**
+   * Logo files in /public/brand: `light` (dark text) shows in light theme, `dark` (white text)
+   * in dark theme and on the always-dark admin sidebar. Set both to null for the text placeholder.
+   */
+  logo: { light: "/brand/logo-on-light.webp" as string | null, dark: "/brand/logo-on-dark.webp" as string | null, width: 495, height: 142 },
   contact: {
     email: "info@example.com",
     phone: "+880 1000-000000",

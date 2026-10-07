@@ -16,6 +16,7 @@ export function ImageSlot({
   fit = "cover",
   labelPosition = "center",
   compact = false,
+  imageClassName,
 }: {
   image: ImageAsset | null | undefined;
   sizes: string;
@@ -30,6 +31,8 @@ export function ImageSlot({
   labelPosition?: "center" | "corner";
   /** Short label for small slots. */
   compact?: boolean;
+  /** Extra classes for the image, e.g. "object-top" to keep a face in a cropped slot. */
+  imageClassName?: string;
 }) {
   return (
     <div className={cx("relative overflow-hidden bg-surface-muted", className)}>
@@ -41,7 +44,7 @@ export function ImageSlot({
           sizes={sizes}
           priority={priority}
           loading={priority ? undefined : "lazy"}
-          className={fit === "cover" ? "object-cover" : "object-contain"}
+          className={cx(fit === "cover" ? "object-cover" : "object-contain", imageClassName)}
         />
       ) : (
         <div className={cx("absolute inset-0 grid bg-[repeating-linear-gradient(135deg,var(--surface-muted)_0_12px,var(--brand-soft)_12px_24px)] p-3 text-center", labelPosition === "center" ? "place-items-center" : "items-start justify-end")}>

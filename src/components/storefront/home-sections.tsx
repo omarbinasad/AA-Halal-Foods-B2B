@@ -58,14 +58,6 @@ export function Hero() {
           {h.title}
         </h1>
         <p className="mt-4 max-w-xl text-base text-foreground sm:text-lg">{h.description}</p>
-        <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-medium" aria-label="Highlights">
-          {h.chips.map((c, i) => (
-            <li key={c} className="inline-flex items-center gap-1.5">
-              <Icon name={(["shieldCheck", "coins", "truck", "headset"] as const)[i % 4]} className="size-4 text-brand" />
-              {c}
-            </li>
-          ))}
-        </ul>
         <Link
           href={h.cta.href}
           className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-cta-from to-cta-to px-7 text-base font-semibold text-white shadow-lg shadow-black/10 transition hover:brightness-110"
@@ -139,6 +131,7 @@ export function BusinessSection() {
         </div>
         <ImageSlot
           image={storefrontImages.owner}
+          imageClassName="object-top"
           sizes="(min-width: 1024px) 28vw, 100vw"
           placeholder={expectedImageFiles.owner}
           className="mx-auto aspect-[4/3] w-full max-w-md rounded-ui sm:aspect-[4/5] lg:max-w-none"

@@ -24,8 +24,8 @@ export const storefrontImages: {
   categories: Record<string, ImageAsset | null>;
   journal: Record<string, ImageAsset | null>;
 } = {
-  hero: null,
-  owner: null,
+  hero: { src: "/images/herob2b.webp", alt: "Warehouse with stacked grocery boxes and a refrigerated delivery truck", width: 1962, height: 802 },
+  owner: { src: "/images/owner.webp", alt: "Business owner standing in the warehouse", width: 1749, height: 1454 },
   delivery: null,
   categories: {},
   journal: {},
@@ -46,7 +46,6 @@ export const homeContent = {
     eyebrow: "Trusted halal wholesale supplier",
     title: "Reliable halal supply for your business",
     description: "Halal groceries, wholesale pricing for approved businesses, and scheduled delivery across Bangladesh.",
-    chips: ["Halal products", "Wholesale pricing", "Scheduled delivery", "Dedicated support"],
     cta: { label: "Explore product catalog", href: "/shop" as Route },
   },
   benefits: [
