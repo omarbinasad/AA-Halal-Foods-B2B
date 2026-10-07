@@ -6,6 +6,7 @@ import { mockDeliveryRoutes, mockReminders } from "./mock/pricing-delivery";
 import { mockPricingRepository, mockQuantityRuleRepository } from "./mock-pricing";
 import { mockSettingsRepository, mockShippingRepository } from "./mock-shipping";
 import { mockTaxRepository } from "./mock-tax";
+import { mockPaymentSettingsRepository } from "./mock-payments";
 import { mockOrderRepository } from "./mock-orders";
 import { mockCatalogSettingsRepository, mockCategoryRepository, mockProductRepository } from "./mock-catalog";
 import { matches, paginate, sortBy, type SortKey } from "./mock-utils";
@@ -49,6 +50,7 @@ export const mockRepositories: Repositories = {
   settings: mockSettingsRepository,
   shipping: mockShippingRepository,
   tax: mockTaxRepository,
+  payments: mockPaymentSettingsRepository,
 
   analytics: {
     getDashboard: getMockDashboard,

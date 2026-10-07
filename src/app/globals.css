@@ -48,6 +48,11 @@
   --status-delivered: #136045;
   --status-cancelled: #a3264f;
 
+  /* Storefront call-to-action (red to deep red) and hero text backdrop */
+  --cta-from: #c4314a;
+  --cta-to: #5e1424;
+  --hero-overlay: rgb(255 255 255 / 0.86);
+
   --focus: #2563eb;
   --radius: 0.75rem;
   color-scheme: light;
@@ -89,6 +94,10 @@
   --status-delivered: #34d399;
   --status-cancelled: #e2557a;
 
+  --cta-from: #d4475f;
+  --cta-to: #6e1a2d;
+  --hero-overlay: rgb(10 19 17 / 0.84);
+
   --focus: #60a5fa;
   color-scheme: dark;
 }
@@ -117,6 +126,9 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-focus: var(--focus);
+  --color-cta-from: var(--cta-from);
+  --color-cta-to: var(--cta-to);
+  --color-hero-overlay: var(--hero-overlay);
   --radius-ui: var(--radius);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Noto Sans Bengali", sans-serif;
 }

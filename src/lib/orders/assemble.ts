@@ -46,10 +46,12 @@ export function recalculate<T extends Recalculable>(order: T, rates: TaxRates): 
   if (order.taxSnapshot) {
     const t = snapshotTax({ ...order, items });
     const refunded = order.refunds.reduce((s, r) => s + toPaisa(r.amount), 0);
+    const netByLine = new Map(t.lines.map((l) => [l.key, l.net]));
+    const withNet = items.map((i) => ({ ...i, lineNet: netByLine.get(i.id) ?? i.lineTotal }));
     const taxes: TaxLine[] = t.groups.map((g) => ({ taxClass: g.rate.taxClass, rate: g.rate.percent, taxableAmount: g.taxableAmount, taxAmount: g.taxAmount, rateId: g.rate.rateId, rateName: g.rate.name }));
     return {
       ...order,
-      items,
+      items: withNet,
       taxes,
       totals: {
         itemsSubtotal: t.itemsSubtotal,
@@ -61,6 +63,8 @@ export function recalculate<T extends Recalculable>(order: T, rates: TaxRates): 
         refundedTotal: fromPaisa(refunded),
         netTotal: fromPaisa(toPaisa(t.total) - refunded),
         taxIncluded: t.pricesIncludeTax || undefined,
+        itemsNet: t.itemsNet,
+        itemsTax: t.itemsTax,
       },
     };
   }

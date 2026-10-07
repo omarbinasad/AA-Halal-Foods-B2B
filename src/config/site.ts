@@ -50,13 +50,15 @@ export interface NavItem {
 }
 
 export const storeNav: NavItem[] = [
-  { href: "/shop", label: "Shop" },
-  { href: "/about", label: "About" },
+  { href: "/shop", label: "Product catalog" },
+  { href: "/#quick-order" as Route, label: "Quick order" },
+  { href: "/#delivery" as Route, label: "Delivery information" },
+  { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
 ];
 
 /** Single place for the B2B application call to action (shown in the store header). */
-export const applyCta: NavItem = { href: "/register", label: "Apply for wholesale account" };
+export const applyCta: NavItem = { href: "/register", label: "Apply for B2B account" };
 
 export const accountNav: NavItem[] = [
   { href: "/account", label: "Dashboard" },
@@ -77,6 +79,7 @@ export const adminNav: NavItem[] = [
   { href: "/admin/pricing", label: "Pricing rules", icon: "tag" },
   { href: "/admin/shipping", label: "Shipping", icon: "truck" },
   { href: "/admin/tax", label: "Tax", icon: "tag" },
+  { href: "/admin/payments", label: "Payments", icon: "settings" },
   { href: "/admin/delivery", label: "Delivery routes", icon: "truck" },
   { href: "/admin/reminders", label: "Reminders", icon: "bell" },
   { href: "/admin/settings", label: "Settings", icon: "settings" },

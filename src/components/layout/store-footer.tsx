@@ -1,36 +1,72 @@
+import type { Route } from "next";
 import Link from "next/link";
-import { siteConfig, storeNav } from "@/config/site";
+import { applyCta, siteConfig } from "@/config/site";
+import { Logo } from "@/components/ui/logo";
+
+/* Only links to routes that exist — no placeholder or broken links. */
+const columns: { title: string; links: { href: Route; label: string }[] }[] = [
+  {
+    title: "Catalog",
+    links: [
+      { href: "/shop", label: "All products" },
+      { href: "/#categories" as Route, label: "Categories" },
+      { href: "/#quick-order" as Route, label: "Quick order" },
+    ],
+  },
+  {
+    title: "For businesses",
+    links: [
+      { href: applyCta.href, label: applyCta.label },
+      { href: "/#delivery" as Route, label: "Delivery information" },
+      { href: "/about", label: "About us" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { href: "/contact", label: "Contact us" },
+      { href: "/login", label: "Log in" },
+      { href: "/account", label: "Customer account" },
+    ],
+  },
+];
 
 export function StoreFooter() {
-  const { name, tagline, contact } = siteConfig;
+  const { name, description, contact } = siteConfig;
   return (
-    <footer className="mt-16 border-t border-line bg-surface">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm sm:grid-cols-3 sm:px-6">
-        <div>
-          <p className="font-semibold">{name}</p>
-          <p className="mt-1 text-muted">{tagline}</p>
+    <footer className="border-t border-line bg-surface">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm sm:px-6 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
+        <div className="space-y-3">
+          <Logo />
+          <p className="max-w-sm text-muted">{description}</p>
+          <address className="space-y-0.5 text-muted not-italic">
+            <p>{contact.address}</p>
+            <p>
+              <a href={`tel:${contact.phone.replace(/[^+\d]/g, "")}`} className="hover:text-foreground">{contact.phone}</a>
+              {" · "}
+              <a href={`mailto:${contact.email}`} className="hover:text-foreground">{contact.email}</a>
+            </p>
+            <p>{contact.hours}</p>
+          </address>
         </div>
-        <nav aria-label="Footer">
-          <ul className="space-y-2">
-            {storeNav.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="text-muted hover:text-foreground">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <address className="space-y-1 text-muted not-italic">
-          <p>{contact.address}</p>
-          <p>{contact.phone}</p>
-          <p>{contact.email}</p>
-          <p>{contact.hours}</p>
-        </address>
+        {columns.map((col) => (
+          <nav key={col.title} aria-label={col.title}>
+            <h2 className="font-semibold">{col.title}</h2>
+            <ul className="mt-3 space-y-2">
+              {col.links.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-muted hover:text-foreground">{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
       </div>
-      <p className="border-t border-line px-4 py-4 text-center text-xs text-muted">
-        © {new Date().getFullYear()} {name}. Prices exclude VAT unless stated.
-      </p>
+      <div className="border-t border-line">
+        <p className="mx-auto max-w-7xl px-4 py-4 text-xs text-muted sm:px-6">
+          © {new Date().getFullYear()} {name}. Prices are shown to approved business customers and exclude tax unless stated.
+        </p>
+      </div>
     </footer>
   );
 }

@@ -9,6 +9,7 @@ The backend (Laravel or Django) is not chosen yet; all data currently comes from
 ## Where things live
 - `src/app/(store)` public storefront · `src/app/(auth)` login/register · `src/app/account` customer portal · `src/app/admin` admin panel
 - `src/config/site.ts` brand name, logo, contact, navigation — the only place for branding
+- `src/config/storefront.ts` Home copy and image paths (null → labelled placeholder; files go in /public/images) · `src/components/storefront` Home sections · `src/app/(store)/(pages)` route group gives non-Home store pages their container (URLs unchanged)
 - `public/brand` logo/brand marks · `public/images` fixed site images · product photos come from the backend media host, never the repo
 - `src/app/globals.css` design tokens (colors, radius, charts) as CSS variables, light + `[data-theme="dark"]`; theme script + toggle in `src/components/ui/theme*.tsx`
 - `src/components/ui` shared primitives · `src/components/layout` area navigation · `src/components/<feature>` feature UI
@@ -19,7 +20,8 @@ The backend (Laravel or Django) is not chosen yet; all data currently comes from
 - `src/lib/pricing/engine.ts` pure B2B price/quantity rule engine (documented precedence, paisa math); the reference the backend must match — tested in `tests/pricing-engine.test.ts`
 - `src/lib/shipping/engine.ts` pure shipping zone matching + rate calculation (sample rates in mock data) — tested in `tests/shipping-engine.test.ts`
 - `src/lib/tax/engine.ts` pure tax rate matching + calculation (fictional demo rates; orders store tax snapshots) — tested in `tests/tax-engine.test.ts`
-- Demo editing: the mock catalog, orders, customers, rules, settings, shipping zones and tax are in-memory stores on `globalThis` — label any editable screen with `DemoEditingNotice`
+- `src/lib/payments/methods.ts` payment method availability/validation (settings only — no processing, no secrets) — tested in `tests/payment-methods.test.ts`
+- Demo editing: the mock catalog, orders, customers, rules, settings, shipping zones, tax and payment methods are in-memory stores on `globalThis` (not reliable on Vercel serverless — see docs/backend-api.md §7) — label any editable screen with `DemoEditingNotice`
 - `docs/backend-api.md` backend API contract — update it when types or repository interfaces change
 - `docs/FEATURE_SCOPE.md` feature inventory and status — update statuses when a feature changes; a screen alone is not "done"
 
@@ -39,6 +41,7 @@ The backend (Laravel or Django) is not chosen yet; all data currently comes from
 - Never present mock authentication, payment, or order submission as real functionality.
 - Keep admin-only code under `src/app/admin` / `src/components/admin` so it never loads on public pages.
 - Do not add any real company name to code, metadata, docs, or placeholder content.
-- Never present a tax rate as the current legal rate; demo rates must be labelled fictional.
+- Never present a tax rate as the current legal rate; demo rates must be labelled fictional. Tax stays off by default.
+- Never collect card data, store gateway secrets in client code/browser storage, process payments, or mark orders paid on method selection.
 - For multi-file changes make a brief plan; for simple changes work directly.
 - Inspect only relevant files, run relevant checks (`npm test`, `npm run lint`, `npm run typecheck`, `npm run build`), report results concisely.

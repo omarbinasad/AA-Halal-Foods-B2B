@@ -1,11 +1,12 @@
 import { StoreFooter } from "@/components/layout/store-footer";
 import { StoreHeader } from "@/components/layout/store-header";
 
+/** Storefront shell. Home uses the full width; other store pages add their own container ((pages)/layout.tsx). */
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <StoreHeader />
-      <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
+      <main id="main" className="flex w-full flex-1 flex-col">
         {children}
       </main>
       <StoreFooter />

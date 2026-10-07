@@ -63,6 +63,11 @@ import type {
   ShippingZoneInput,
   StoreSettings,
   OrderTaxSnapshot,
+  CheckoutPaymentMethod,
+  PaymentAvailability,
+  PaymentMethodId,
+  PaymentMethodInput,
+  PaymentMethodSettings,
   TaxPreviewLineInput,
   TaxRate,
   TaxRateInput,
@@ -519,6 +524,30 @@ export interface TaxRepository {
   preview(input: TaxPreviewInput): Promise<TaxPreviewResult>;
 }
 
+// --- Payment methods (settings only) ---------------------------------------------------
+
+export interface PaymentMethodListItem extends PaymentMethodSettings {
+  availability: PaymentAvailability;
+}
+
+/**
+ * Payment method SETTINGS. No payment processing, card data or gateway secrets: the
+ * backend owns provider credentials and only reports the connection state.
+ */
+export interface PaymentSettingsRepository {
+  /** All methods in display order, with availability. */
+  listMethods(): Promise<PaymentMethodListItem[]>;
+  getMethod(id: PaymentMethodId): Promise<PaymentMethodListItem | null>;
+  updateMethod(id: PaymentMethodId, input: PaymentMethodInput, actor: Actor): Promise<SaveResult<PaymentMethodSettings>>;
+  /** Saves a new display order; `ids` must list every method exactly once. */
+  reorderMethods(ids: PaymentMethodId[], actor: Actor): Promise<SaveResult<PaymentMethodListItem[]>>;
+  /**
+   * For checkout (not built yet): enabled AND available methods, in display order, with
+   * customer-facing fields only. Online payment is excluded until a provider is connected.
+   */
+  checkoutMethods(): Promise<CheckoutPaymentMethod[]>;
+}
+
 export interface AnalyticsRepository {
   /** Admin dashboard figures for a date range, optionally compared with a second range. */
   getDashboard(query: DashboardQuery): Promise<DashboardSummary>;
@@ -537,5 +566,6 @@ export interface Repositories {
   settings: SettingsRepository;
   shipping: ShippingRepository;
   tax: TaxRepository;
+  payments: PaymentSettingsRepository;
   analytics: AnalyticsRepository;
 }

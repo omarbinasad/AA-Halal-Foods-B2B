@@ -32,7 +32,7 @@ export default async function TaxPreviewPage() {
       <div className="mb-6 space-y-3">
         <Notice tone="warning" title="Demo calculation with fictional rates">
           Current settings: tax {settings.enabled ? "on" : "off"}, prices {settings.pricesIncludeTax ? "include" : "exclude"} tax, shipping {settings.shippingTaxable ? "taxable" : "not taxed"}. No rate shown is a legal
-          rate, and nothing is filed or collected.
+          rate, and nothing is filed or collected.{!settings.enabled && " Tax is off by default, so previews show no tax until you enable it under Settings & rates."}
         </Notice>
         <TaxRules />
       </div>

@@ -1,49 +1,61 @@
-import Link from "next/link";
-import { ButtonLink } from "@/components/ui/button";
-import { PlannedFeatures } from "@/components/ui/feedback";
-import { siteConfig } from "@/config/site";
+import { DeliveryLookup, type DivisionDelivery } from "@/components/storefront/delivery-lookup";
+import {
+  ArrowLink,
+  Benefits,
+  BusinessSection,
+  CategoryGrid,
+  ContactStrip,
+  DeliverySection,
+  Hero,
+  Journal,
+  SectionHeading,
+  Steps,
+  wrap,
+} from "@/components/storefront/home-sections";
+import { QuickOrder } from "@/components/storefront/quick-order";
 import { repositories } from "@/lib/data";
+import { BD_DIVISIONS } from "@/lib/locations";
+import { loadQuickOrder } from "@/lib/storefront/quick-order";
+import type { DeliveryRoute } from "@/lib/types";
+
+const DAY: Record<string, string> = { sat: "Sat", sun: "Sun", mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri" };
+
+/** Division → the existing delivery route that lists it (sample route data). */
+function divisionRoutes(routes: DeliveryRoute[]): DivisionDelivery[] {
+  return BD_DIVISIONS.map((division) => {
+    const r = routes.find((x) => x.active && x.areas.some((a) => a.toLowerCase() === division.toLowerCase()));
+    return { division, route: r && { name: r.name, days: r.deliveryDays.map((d) => DAY[d] ?? d).join(", "), cutoff: r.cutoffTime } };
+  });
+}
 
 export default async function HomePage() {
-  const categories = await repositories.products.listCategories();
+  const [categories, quickOrder, routes] = await Promise.all([
+    repositories.products.listCategories(),
+    // Resolved per request for the current viewer: prices only for approved customers.
+    loadQuickOrder({}),
+    repositories.delivery.listRoutes({ perPage: 48 }),
+  ]);
+  const roots = categories.filter((c) => !c.parentId).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="space-y-10">
-      <section className="rounded-ui bg-brand-soft px-5 py-10 sm:px-10 sm:py-14">
-        <h1 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">{siteConfig.tagline}</h1>
-        <p className="mt-3 max-w-xl text-muted">
-          Browse our catalog. Approved business customers see wholesale prices and can order online.
-        </p>
-        <ButtonLink href="/shop" size="lg" className="mt-6">
-          Browse products
-        </ButtonLink>
+    <div className="bg-surface">
+      <Hero />
+      <Benefits />
+      <CategoryGrid categories={roots.slice(0, 6)} />
+
+      <section id="quick-order" aria-labelledby="quick-order-title" className={`${wrap} scroll-mt-40 pb-12`}>
+        <SectionHeading id="quick-order-title" title="Restock faster with quick order" action={<ArrowLink href="/shop">View full catalog</ArrowLink>} />
+        <p className="-mt-3 mb-4 text-sm text-muted">Find products by name or SKU.</p>
+        <QuickOrder initial={quickOrder} categories={roots.map((c) => ({ slug: c.slug, name: c.name }))} />
       </section>
 
-      <section aria-labelledby="categories-heading">
-        <h2 id="categories-heading" className="text-lg font-semibold">
-          Shop by category
-        </h2>
-        <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={`/shop?category=${c.slug}`}
-                className="block h-full rounded-ui border border-line bg-surface p-4 text-sm font-medium hover:border-brand"
-              >
-                {c.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <PlannedFeatures
-        items={[
-          "Final homepage design from supplied brand references",
-          "Featured products and seasonal promotions",
-          "How wholesale ordering works (delivery routes, cutoff times)",
-        ]}
-      />
+      <BusinessSection />
+      <DeliverySection>
+        <DeliveryLookup divisions={divisionRoutes(routes.items)} />
+      </DeliverySection>
+      <Steps />
+      <Journal />
+      <ContactStrip />
     </div>
   );
 }

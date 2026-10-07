@@ -369,6 +369,7 @@ and the filters shown below.
 | Delivery routes | `GET/POST /admin/delivery-routes` · `PATCH/DELETE /admin/delivery-routes/{id}` | `delivery.listRoutes()` |
 | Reminders | `GET/POST /admin/reminders` · `PATCH/DELETE /admin/reminders/{id}` | `delivery.listReminders()` |
 | Store settings | `GET /admin/settings/store` → `StoreSettings` · `PUT /admin/settings/store` (`StoreSettingsInput`) | `settings.getStore()`, `updateStore()` |
+| Payment methods (settings) | `GET /admin/payment-methods` → `PaymentMethodListItem[]` · `GET/PUT /admin/payment-methods/{id}` (`PaymentMethodInput`) · `PUT /admin/payment-methods/order` (`{ "ids": [...] }`) · `GET /checkout/payment-methods` → `CheckoutPaymentMethod[]` — see *Payment methods (admin)* below | `payments.listMethods()`, `getMethod()`, `updateMethod()`, `reorderMethods()`, `checkoutMethods()` |
 | Tax | `GET/PUT /admin/tax/settings` (`TaxSettingsInput`) · `GET /admin/tax/classes` → `TaxClassUsage[]` · `GET /admin/tax/rates` (listing params; `taxClass`, `enabled`) · `POST /admin/tax/rates` · `GET/PUT/DELETE /admin/tax/rates/{id}` (`TaxRateInput`) · `POST /admin/tax/preview` (`TaxPreviewInput` → `TaxPreviewResult`) — see *Tax (admin)* below | `tax.getSettings()`, `updateSettings()`, `classes()`, `listRates()`, `getRate()`, `createRate()`, `updateRate()`, `deleteRate()`, `snapshotFor()`, `preview()` |
 | Shipping | `GET /admin/shipping/zones` · `POST /admin/shipping/zones` · `GET/PUT/DELETE /admin/shipping/zones/{id}` (`ShippingZoneInput`; the fallback zone can't be deleted) · `POST /admin/shipping/quote` (`ShippingQuoteInput` → `ShippingQuoteResult`) — see *Store settings and shipping (admin)* below | `shipping.listZones()`, `getZone()`, `createZone()`, `updateZone()`, `deleteZone()`, `quote()` |
 | Analytics | `GET /admin/analytics/dashboard?from=&to=&compareFrom=&compareTo=` | `analytics.getDashboard()` |
@@ -445,7 +446,7 @@ Definitions the frontend currently assumes (confirm or change):
 
 | Field | Definition |
 | --- | --- |
-| `kpis.revenue` | Net sales: item totals after discounts and weight/price adjustments; excludes VAT, shipping and cancelled orders |
+| `kpis.revenue` | Net sales: item totals after discounts and weight/price adjustments, **excluding tax** (tax-inclusive orders have their tax removed via `totals.itemsNet`); excludes shipping and cancelled orders. Product/category rankings use `items[].lineNet` on the same basis |
 | `kpis.orders` | Orders placed in the range, excluding cancelled |
 | `kpis.activeCustomers` | Distinct customers with a non-cancelled order in the range |
 | `kpis.averageOrderValue` | `revenue / orders`, rounded |
@@ -699,12 +700,48 @@ Line prices: the given `unitPrice`, else the customer's price (B2B rule / sale /
 else the active sale or regular price. The backend must repeat matching, validation and calculation at cart,
 checkout and order creation; it should also use a maintained Bangladesh location/postcode dataset.
 
+### Payment methods (admin)
+
+Types: [`src/lib/types/payment.ts`](../src/lib/types/payment.ts). Rules (pure, tested):
+[`src/lib/payments/methods.ts`](../src/lib/payments/methods.ts) and `tests/payment-methods.test.ts`. Mock permission:
+`payments.manage`. **Configuration only:** nothing processes payments, collects card data, stores gateway secrets,
+or changes an order's `paymentStatus` when a method is chosen.
+
+Methods (fixed set): `pay_on_delivery` (old store gateway `cod`, order method `cash_on_delivery`), `bank_transfer`
+(`bacs`, order method `bank_transfer`) and `online` (placeholder). Each has `enabled`, `sortOrder`, customer-facing
+`title` (2–60), `description` (≤ 160) and `instructions` (≤ 1000). Bank transfer adds `bank`: `accountName`,
+`bankName`, `accountNumber` (6–30 digits; spaces/dashes allowed), optional `branchName`, `routingNumber` (9 digits) —
+required only to **enable** the method. Demo bank values are fictional.
+
+`PUT /admin/payment-methods/bank_transfer`
+
+```json
+{ "enabled": true, "title": "Bank transfer", "description": "Transfer the order total to our bank account.", "instructions": "Use your order number as the payment reference.", "bank": { "accountName": "Wholesale Store (demo, fictional)", "bankName": "Example Bank Ltd. (fictional)", "accountNumber": "0000 1234 5678 90", "branchName": "Sample Branch, Dhaka (fictional)", "routingNumber": "000000000" } }
+```
+
+**Availability** (`availability: { configured, availableAtCheckout, reasons[] }`): pay on delivery → when enabled; bank
+transfer → when enabled and account name, bank name and account number are set; online → only when enabled **and**
+`online.status === "connected"`. The online connection state is read-only for the frontend: only the backend may set
+it after a provider integration exists. Provider credentials (API keys, secrets, webhook secrets) must live only in
+backend configuration — never in API responses, client code or browser storage.
+
+`GET /checkout/payment-methods` (for the future checkout) → enabled **and** available methods in display order, with
+customer-facing fields only (`id`, `title`, `description`, `instructions`, and `bank` for bank transfer). Today it
+returns pay on delivery and bank transfer; online is excluded while not connected.
+
+Backend requirements: persist settings; authorize `payments.manage`; validate as above; re-check availability when an
+order is placed (reject a method that is no longer available); record the order's `payment.method` with
+`paymentStatus` `unpaid`/`invoiced` — never `paid` on selection. Marking paid, refunds, provider webhooks and
+reconciliation are a later payments module.
+
 ### Tax (admin)
 
 Types: [`src/lib/types/tax.ts`](../src/lib/types/tax.ts). Reference behaviour (pure, tested):
 [`src/lib/tax/engine.ts`](../src/lib/tax/engine.ts) and `tests/tax-engine.test.ts`. Mock permission: `tax.manage`.
 **All seeded rates are fictional demo values — none is the current Bangladesh legal rate.** The backend performs the
 authoritative calculation; tax filing, payment collection and refunds are out of scope.
+
+The demo starts with tax **off** (`enabled: false`); the fictional example rates apply only after an admin enables it.
 
 `PUT /admin/tax/settings` — `{ "enabled": true, "pricesIncludeTax": false, "shippingTaxable": false, "shippingTaxClass": "standard" }`
 (`shippingTaxClass` must exist and cannot be `exempt` when shipping is taxable). Shipping is **not** assumed taxable.
@@ -732,10 +769,14 @@ authoritative calculation; tax filing, payment collection and refunds are out of
 1. Line amount = unit price × quantity − line discount (discount never exceeds the line); **discounts come before
    tax**. Weight-priced lines are scaled to the packed weight first. Each line amount is rounded half-up to the paisa.
 2. Lines — and shipping, when taxable, at the rate matched for `shippingTaxClass` — are grouped by applied rate.
-3. Tax per rate group is calculated once and rounded half-up to the paisa:
+3. Per applied rate, tax is calculated once on the items and once on the shipping, each rounded half-up to the paisa:
    prices excluding tax → `amount × p / 100` (added); prices including tax → `amount × p / (100 + p)` (extracted; the
    payable total does not change). Shipping follows the same included/excluded setting.
-4. Tax total = Σ group taxes. Total = items after discounts + shipping (+ tax when prices exclude tax).
+4. Tax total = Σ rate taxes. Total = items after discounts + shipping (+ tax when prices exclude tax).
+5. Each rate's item tax is shared across its lines by largest remainder (exact to the paisa), giving each line a
+   net amount. **Net sales** = items after discounts **excluding tax** (`totals.itemsNet`, `items[].lineNet`);
+   shipping and shipping tax are never net sales. Orders without a snapshot were tax-exclusive, so their
+   `itemsTotal` is already net.
 
 `POST /admin/tax/preview` → `TaxPreviewResult` (abridged, prices excluding tax, Dhaka district, shipping not taxable):
 
@@ -869,9 +910,16 @@ The frontend shows these values but never decides them.
 
 ## 7. Mock-only today
 
+**Persistence of demo edits.** Every editable admin screen writes to in-memory stores on `globalThis` in the server
+process (catalog, orders, customers and groups, pricing/quantity rules, store settings, shipping zones, tax, payment
+methods). On one long-running server (`next start`, `next dev`) edits survive page refreshes and are lost on restart.
+On Vercel, requests are served by short-lived serverless instances that each start from the seed data and do not share
+memory: edits may vanish after a cold start, or show on one request and not the next. Treat them as throwaway demo state.
+The backend replaces this with a database.
+
 | Feature | Current frontend behaviour | Needs from backend |
 | --- | --- | --- |
-| Login / logout / session | No auth. `MOCK_VIEWER` env var picks guest/customer/admin view ([`session.ts`](../src/lib/auth/session.ts)) | §2 auth endpoints |
+| Login / logout / session | No auth. `MOCK_VIEWER` env var picks guest / customer (approved) / customer-pending / admin view ([`session.ts`](../src/lib/auth/session.ts)) | §2 auth endpoints |
 | Portal and admin access control | **None**. Anyone can open `/account` and `/admin`; a banner says so | Token + role checks on every endpoint |
 | Portal customer | Always demo customer `cus-001` | Derived from token |
 | Price visibility | Hidden for guests in the UI only (no enforcement). The mock public list omits `basePrice`; only `adminList` returns it | §3 omits prices; §4 prices endpoint; auth on `/admin/*` |
@@ -883,7 +931,8 @@ The frontend shows these values but never decides them.
 | Cart / quick order | Empty-state placeholder | §4 cart endpoints |
 | Checkout / order placement / payment | Placeholder, no submit button. No payment exists | `POST /customer/orders`. Payment method is still to be decided (currently invoice) |
 | Order totals and taxes | Pure calculators (`src/lib/orders/calc.ts`, `src/lib/tax/engine.ts`); new admin orders store a tax snapshot; older demo orders keep placeholder VAT | Authoritative server calculation; real rates |
-| Tax settings and rates | Settings, fictional rates, classes overview and tax preview edit an **in-memory** store | Persistence, real rates, permissions; filing/collection out of scope |
+| Tax settings and rates | Settings (tax **off** by default), fictional rates, classes overview and tax preview edit an **in-memory** store | Persistence, real rates, permissions; filing/collection out of scope |
+| Payment method settings | Enable/disable, order, titles, instructions and fictional bank details edit an **in-memory** store; online payment is a "Not connected" placeholder | Persistence, provider integration (credentials server-side only), checkout endpoint, payment confirmation |
 | Admin orders | List, detail, status changes, notes, item adjustments and create-for-customer work against an **in-memory** mock store (same limits as products). Payment details and refunds are read-only sample data; no payment, refund, email or SMS happens | §5 order endpoints, permissions, stock reservation, payment/refund and notification modules |
 | Profile, address, notification edits | Read-only | §4 mutations |
 | Product & category editing | Create / edit / duplicate / archive work against an **in-memory** mock store: survives refresh, lost on server restart, shared by everyone using the demo server. Server actions are not access-controlled | §5 product/category endpoints with persistence, admin auth and uniqueness checks |
@@ -899,7 +948,8 @@ The frontend shows these values but never decides them.
 
 ## 8. Open questions for the backend team
 
-- Payment methods beyond invoice (bank transfer, card)? These affect `paymentStatus` and checkout.
+- Which online payment provider(s) to integrate, and whether invoice / mobile wallet become checkout methods too.
+- Who marks bank-transfer and pay-on-delivery orders paid, and how payments are reconciled.
 - Should guests see stock status and quantities, or only an in-stock flag?
 - Staff roles inside `admin` (e.g. packing staff who may only update orders)? The frontend mock uses permission
   names `orders.create`, `orders.update`, `orders.adjust`, `customers.manage`, `customers.approve`,
@@ -911,5 +961,4 @@ The frontend shows these values but never decides them.
 - Money precision: the frontend now supports 2-decimal amounts (paisa) end to end; confirm the backend stores them
   exactly (integer paisa or DECIMAL).
 - VAT classes and real rates for the catalogue (the `standard` / `reduced` / `exempt` keys and all demo rates are placeholders).
-- Should net-sales analytics exclude tax for tax-inclusive orders? The demo dashboard sums `itemsTotal` as entered.
 - Migrating customers, orders and products from the current store. The ID strategy decides whether old IDs are kept.

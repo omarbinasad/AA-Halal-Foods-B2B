@@ -28,6 +28,9 @@ export async function getViewer(): Promise<Viewer> {
   switch (process.env.MOCK_VIEWER) {
     case "customer":
       return { kind: "customer", customerId: DEMO_CUSTOMER_ID, status: "approved" };
+    case "customer-pending":
+      // Demo applicant awaiting approval: sees approval messages, never wholesale prices.
+      return { kind: "customer", customerId: "cus-003", status: "pending" };
     case "admin":
       return { kind: "admin", userId: "admin-1" };
     default:
@@ -56,5 +59,5 @@ export function canSeeWholesalePrices(viewer: Viewer) {
  */
 export async function getAdminActor(): Promise<{ id: ID; name: string; role: "admin"; permissions: string[] }> {
   await cookies();
-  return { id: "admin-1", name: "Demo admin", role: "admin", permissions: ["orders.create", "orders.update", "orders.adjust", "customers.manage", "customers.approve", "customer-groups.manage", "pricing.manage", "settings.manage", "shipping.manage", "tax.manage"] };
+  return { id: "admin-1", name: "Demo admin", role: "admin", permissions: ["orders.create", "orders.update", "orders.adjust", "customers.manage", "customers.approve", "customer-groups.manage", "pricing.manage", "settings.manage", "shipping.manage", "tax.manage", "payments.manage"] };
 }

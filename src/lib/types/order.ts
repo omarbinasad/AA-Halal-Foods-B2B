@@ -88,6 +88,8 @@ export interface OrderItem extends LegacyRef {
   pricing?: OrderItemPricing;
   /** Product tax status at order time: false for "none" / "shipping only". Absent = taxable. */
   taxable?: boolean;
+  /** Line total excluding tax (net sales). Set on orders with a tax snapshot; absent = lineTotal (tax was never inside it). */
+  lineNet?: Money;
 }
 
 export interface OrderItemPricing {
@@ -184,6 +186,10 @@ export interface OrderTotals {
   netTotal: Money;
   /** true when the order's prices included tax (tax was extracted, not added). */
   taxIncluded?: boolean;
+  /** Items after discounts excluding tax — net sales. Set on orders with a tax snapshot; absent = itemsTotal. */
+  itemsNet?: Money;
+  /** Tax on the items only (excluding shipping tax). */
+  itemsTax?: Money;
 }
 
 export interface Order extends LegacyRef {

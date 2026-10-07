@@ -17,8 +17,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       banner={
         <Notice tone="warning">
           <strong>Preview mode:</strong> there is no sign-in or access control yet, and permissions are mocked. Edits to
-          products, categories, orders, customers, customer groups, pricing/quantity rules, store settings, shipping zones and tax settings/rates are saved in this demo server&apos;s memory: they
-          survive page refreshes but are lost when the server restarts. Other admin screens are read-only.
+          products, categories, orders, customers, customer groups, pricing/quantity rules, store settings, shipping zones, tax settings/rates and payment method settings are saved in this demo server&apos;s memory: they
+          survive page refreshes but are lost when the server restarts, and on Vercel they may disappear or differ between requests. Other admin screens are read-only.
         </Notice>
       }
     >

@@ -7,3 +7,4 @@ export type * from "./delivery";
 export type * from "./analytics";
 export type * from "./shipping";
 export type * from "./tax";
+export type * from "./payment";

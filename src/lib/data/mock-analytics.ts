@@ -2,6 +2,7 @@ import "server-only";
 
 import { addDays, rangeLength } from "@/lib/date-range";
 import { sumMoney } from "@/lib/orders/calc";
+import { lineNetSales, orderNetSales } from "@/lib/orders/net-sales";
 import type { DashboardQuery, DashboardSummary, DateRange, Order, OrderStatus, RankingItem, SeriesPoint } from "@/lib/types";
 import { mockCategories, mockProducts } from "./mock/catalog";
 import { mockCustomers } from "./mock/customers";
@@ -22,8 +23,10 @@ const categoryById = new Map(mockCategories.map((c) => [c.id, c]));
 
 /** Mock placedAt values carry the store offset, so the date part is the local calendar date. */
 const localDate = (order: Order) => order.placedAt.slice(0, 10);
-/** Items after discounts and adjustments, excl. VAT and shipping. */
-const netSales = (order: Order) => order.totals.itemsTotal;
+/** Items after discounts and adjustments, excluding tax and shipping (same basis for tax-inclusive and -exclusive orders). */
+const netSales = (order: Order) => orderNetSales(order);
+/** Money addition in paisa (no float drift across thousands of orders). */
+const addMoney = (a: number, b: number) => sumMoney([a, b]);
 
 const ordersIn = (range: DateRange) =>
   mockOrders.filter((o) => {
@@ -49,7 +52,8 @@ function series(orders: Order[], range: DateRange, bucketDays: number): SeriesPo
   for (const o of orders) {
     if (o.status === "cancelled") continue;
     const day = Math.round((Date.parse(`${localDate(o)}T00:00:00Z`) - start) / 86_400_000);
-    values[Math.floor(day / bucketDays)] += netSales(o);
+    const b = Math.floor(day / bucketDays);
+    values[b] = addMoney(values[b], netSales(o));
   }
   return values.map((value, i) => ({ date: addDays(range.from, i * bucketDays), value }));
 }
@@ -62,7 +66,7 @@ function totals(orders: Order[]) {
   const customers: Totals = new Map();
   const add = (map: Totals, key: string, revenue: number, units = 0) => {
     const t = map.get(key) ?? { revenue: 0, units: 0 };
-    t.revenue += revenue;
+    t.revenue = addMoney(t.revenue, revenue);
     t.units += units;
     map.set(key, t);
   };
@@ -70,10 +74,10 @@ function totals(orders: Order[]) {
     if (o.status === "cancelled") continue;
     add(customers, o.customerId, netSales(o));
     for (const item of o.items) {
-      add(products, item.productId, item.lineTotal, item.quantity);
+      add(products, item.productId, lineNetSales(item), item.quantity);
       const categoryIds = productById.get(item.productId)?.categoryIds ?? [];
       for (const categoryId of categoryIds.length ? categoryIds : ["uncategorized"]) {
-        add(categories, categoryId, item.lineTotal, item.quantity);
+        add(categories, categoryId, lineNetSales(item), item.quantity);
       }
     }
   }

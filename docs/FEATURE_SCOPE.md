@@ -88,7 +88,8 @@ Product origin (e.g. Japan) is a product attribute, separate from the store loca
 
 | Feature | Source | Frontend status | Backend |
 | --- | --- | --- | --- |
-| Home | WC (theme) | Placeholder (category links) | Content later |
+| Home | WC (theme) | Interactive demo from the design reference: hero, benefits, category cards, Quick order (name/SKU search, category filter, pagination; prices only for approved customers, decided server-side), business section, delivery lookup by division (sample route data), account steps, sample journal teasers (not links), contact strip. Images are labelled placeholders until files are added to /public/images (see src/config/storefront.ts) | Content/CMS later; articles; cart |
+| Storefront header / footer | WC (theme) | Logo, product/SKU search → /shop, account, cart, category menu, nav, Apply for B2B account; mobile menu; footer links only to existing routes | — |
 | Shop, product page | WC | Interactive demo | Yes |
 | About, contact | WC (pages) | Placeholder | Yes (contact form) |
 | Cart | WC | Placeholder | Yes |
@@ -124,14 +125,15 @@ Product origin (e.g. Japan) is a product attribute, separate from the store loca
 
 | Feature | Source | Frontend status | Backend |
 | --- | --- | --- | --- |
-| Tax on/off, prices include/exclude tax, shipping taxable + shipping class | WC | Interactive demo (Tax settings) | Yes |
+| Tax on/off (off by default), prices include/exclude tax, shipping taxable + shipping class | WC | Interactive demo (Tax settings) | Yes |
 | Tax classes on products, inherited/overridden by variations | WC | Existing product editor fields; classes overview with usage and fallback status | Yes |
 | Tax rates by class and location (country / division / district / postcode, country = fallback) | WC + New | Interactive demo with **fictional** rates; conflict/range/class validation; deterministic matching | Yes (**authoritative calculation**) |
 | Tax preview (address, customer, products, discounts, shipping method) | New | Interactive demo with examples | Yes (endpoint) |
 | Tax on admin orders with rate/amount snapshots | New | Interactive demo: calculated before saving; snapshot stored; rate edits never change orders | Yes |
 | Tax filing, collection, refunds | WC / New | Not in scope | Yes |
-| Payment methods: enable, configuration, test/live, connection state | WC | — | Yes |
-| Gateway keys, processing, webhooks, refunds | WC | — (secrets never in client code or browser storage) | Yes |
+| Payment methods: enable/disable, display order, titles and instructions; bank transfer details | WC | Interactive demo (Admin → Payments), fictional bank values; checkout list method prepared | Yes |
+| Online payment provider connection, test/live mode | WC | Placeholder only: always "Not connected" and unavailable at checkout | Yes (integration) |
+| Gateway keys, processing, webhooks, refunds, marking orders paid | WC | — (secrets never in client code or browser storage; choosing a method never marks an order paid) | Yes |
 | Store contact details, address, weight/dimension units (currency BDT and Asia/Dhaka fixed) | WC | Interactive demo (Settings) | Yes |
 | Email templates | WC | — | Yes |
 | Staff settings | WC | — | Yes |
@@ -164,7 +166,7 @@ Product origin (e.g. Japan) is a product attribute, separate from the store loca
 
 | Feature | Source | Frontend status | Backend |
 | --- | --- | --- | --- |
-| Revenue, orders, average order value, active customers | WC (Analytics) | Interactive demo (admin dashboard) | Yes |
+| Revenue (net sales excluding tax for tax-inclusive and tax-exclusive orders), orders, average order value, active customers | WC (Analytics) | Interactive demo (admin dashboard) | Yes |
 | Revenue trend and order-status breakdown | WC (Analytics) | Interactive demo | Yes |
 | Date range filter | WC (Analytics) | Interactive demo (presets + custom) | Yes |
 | Comparison between two periods | WC (Analytics) | Interactive demo (previous period, same period last year, custom) | Yes |

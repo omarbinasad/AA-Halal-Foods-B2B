@@ -8,7 +8,8 @@ import type { TaxRate, TaxSettings } from "@/lib/types";
 const at = "2026-01-05T09:00:00+06:00";
 
 const seedSettings: TaxSettings = {
-  enabled: true,
+  // OFF until an admin deliberately enables it (Admin → Tax). The rates below are fictional examples.
+  enabled: false,
   pricesIncludeTax: false,
   // Not assumed: shipping is untaxed until an admin turns it on.
   shippingTaxable: false,
