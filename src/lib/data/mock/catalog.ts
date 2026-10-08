@@ -1,4 +1,5 @@
 import type { Attribute, Brand, Category, Product, ShippingClass, Tag, TaxClassOption } from "@/lib/types";
+import { importedBrands, importedCategories, importedProducts, importedTags } from "./imported-catalog";
 
 const seedCategories: Category[] = [
   { id: "cat-rice", slug: "rice-grains", name: "Rice & Grains", description: "Basmati, parboiled and short-grain rice.", status: "active" },
@@ -444,6 +445,10 @@ export const mockTaxClasses: TaxClassOption[] = [
  * The admin demo edits these arrays in memory. They live on globalThis so every
  * module copy in the server process (routes, server actions) shares one store.
  * Changes are lost when the server restarts.
+ *
+ * The store starts from the hand-written demo records above (referenced by demo orders)
+ * plus the catalog imported from the old store (saved fixture, see ./imported-catalog.ts).
+ * Copies are made so demo edits never touch the fixture module.
  */
 interface CatalogStore {
   products: Product[];
@@ -453,19 +458,19 @@ interface CatalogStore {
   attributes: Attribute[];
   shippingClasses: ShippingClass[];
 }
-const store = globalThis as typeof globalThis & { __mockCatalogV3?: CatalogStore };
-store.__mockCatalogV3 ??= {
-  products: seedProducts,
-  categories: seedCategories,
-  brands: seedBrands,
-  tags: seedTags,
+const store = globalThis as typeof globalThis & { __mockCatalogV4?: CatalogStore };
+store.__mockCatalogV4 ??= {
+  products: [...seedProducts, ...structuredClone(importedProducts)],
+  categories: [...seedCategories, ...structuredClone(importedCategories)],
+  brands: [...seedBrands, ...structuredClone(importedBrands)],
+  tags: [...seedTags, ...structuredClone(importedTags)],
   attributes: seedAttributes,
   shippingClasses: seedShippingClasses,
 };
 
-export const mockProducts = store.__mockCatalogV3.products;
-export const mockCategories = store.__mockCatalogV3.categories;
-export const mockBrands = store.__mockCatalogV3.brands;
-export const mockTags = store.__mockCatalogV3.tags;
-export const mockAttributes = store.__mockCatalogV3.attributes;
-export const mockShippingClasses = store.__mockCatalogV3.shippingClasses;
+export const mockProducts = store.__mockCatalogV4.products;
+export const mockCategories = store.__mockCatalogV4.categories;
+export const mockBrands = store.__mockCatalogV4.brands;
+export const mockTags = store.__mockCatalogV4.tags;
+export const mockAttributes = store.__mockCatalogV4.attributes;
+export const mockShippingClasses = store.__mockCatalogV4.shippingClasses;

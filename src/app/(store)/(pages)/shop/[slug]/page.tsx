@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductImage } from "@/components/product/product-image";
 import { StockBadge } from "@/components/ui/badge";
 import { Notice, PlannedFeatures } from "@/components/ui/feedback";
+import { RichText } from "@/components/ui/rich-text";
 import { repositories } from "@/lib/data";
 import { countryName, formatWeight } from "@/lib/format";
 
@@ -36,7 +37,7 @@ export default async function ProductPage({ params }: PageProps<"/shop/[slug]">)
             <p className="mt-1 text-sm text-muted">SKU {product.sku}</p>
           </div>
           <StockBadge status={product.stock.status} />
-          <p className="text-muted">{product.description}</p>
+          <RichText value={product.description} className="text-muted" />
 
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-ui border border-line bg-surface p-4 text-sm">
             <dt className="text-muted">Unit</dt>

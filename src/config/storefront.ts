@@ -48,6 +48,28 @@ export const homeContent = {
     description: "Halal groceries, wholesale pricing for approved businesses, and scheduled delivery across Bangladesh.",
     cta: { label: "Explore product catalog", href: "/shop" as Route },
   },
+  /**
+   * Top-level categories featured on Home (category grid + quick order), in this order.
+   * Slugs of the imported sample catalog (src/lib/data/fixtures). Missing or hidden slugs are
+   * skipped and the grid is filled with other top-level categories that have an image.
+   */
+  featuredCategories: {
+    slugs: [
+      "meat",
+      "fish",
+      "fruits-vegetable",
+      "rice-and-flour-online",
+      "cooking-essentials-online",
+      "masala-spices",
+      "snacks-sweets",
+      "drink-beverage",
+      "nuts-dry-fruits",
+      "health-beauty",
+      "country-wise-grocery-halal-foods",
+      "ramadan-special",
+    ],
+    max: 12,
+  },
   benefits: [
     { icon: "halal", title: "Halal products", text: "A wide range of halal groceries" },
     { icon: "coins", title: "Wholesale pricing", text: "Business prices after account approval" },

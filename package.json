@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --experimental-strip-types --no-warnings --test \"tests/**/*.test.ts\""
+    "test": "node --experimental-strip-types --no-warnings --test \"tests/**/*.test.ts\"",
+    "import:woocommerce": "node --experimental-strip-types --no-warnings scripts/import-woocommerce.ts"
   },
   "dependencies": {
     "next": "16.3.7",

@@ -32,6 +32,14 @@ export const formatMoney = (amount: Money) => {
 export const formatMoneyCompact = (amount: Money) =>
   signed(amount, `${currencySymbol}${compactFmt.format(Math.abs(amount))}`);
 export const formatNumber = (value: number) => numberFmt.format(value);
+/**
+ * An amount in ANOTHER currency, labelled with its ISO code — for imported source prices
+ * only ("1,130 JPY"). Never converts and never uses the store currency symbol.
+ */
+export const formatSourceAmount = (amount: string, currency: string) => {
+  const n = Number(amount);
+  return `${Number.isFinite(n) ? numberFmt.format(n) : amount} ${currency}`;
+};
 export const formatDate = (iso: string) => dateFmt.format(new Date(iso));
 export const formatDateTime = (iso: string) => dateTimeFmt.format(new Date(iso));
 /** "2026-09-01" → "1 Sept 2026" */

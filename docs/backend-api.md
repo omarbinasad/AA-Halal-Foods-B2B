@@ -59,7 +59,7 @@ All non-2xx responses use one shape:
 
 | Endpoint | `search` matches | `sort` fields (default) | Filters |
 | --- | --- | --- | --- |
-| `GET /products` | name, SKU | `name` (default), `updated` | `category` (slug), `stockStatus` |
+| `GET /products` | name, SKU | `name` (default), `updated` | `category` (slug), `categories` (comma-separated slugs: any of them, subcategories included; ANDed with `category` — used by the Home quick order to stay within featured categories), `stockStatus` |
 | `GET /admin/products` | name, SKU, variation SKUs | `name` (default), `sku`, `price` (lowest active price), `stock`, `updated` | `category` (slug, includes subcategories), `type` (`simple`/`variable`), `stockStatus`, `status` (omitted = published + draft; archived only when asked for) |
 | `GET /admin/categories` | name, slug, description | `path` (default, tree order), `name`, `products` | `status` (`active`/`hidden`) |
 | `GET /admin/orders` · `GET /customer/orders` | order number, customer name | `placed` (default, desc), `number`, `customer`, `total`, `status` | `status`, `paymentStatus`, `customerId` (admin), `deliveryRouteId`, `from`/`to` (placement date) |
@@ -405,6 +405,15 @@ Types in [`src/lib/types/catalog.ts`](../src/lib/types/catalog.ts): `Product` (=
 - **Legacy / migration fields:** optional `legacyWooId` on products, variations, categories, brands, tags, attributes and
   attribute values (the old WooCommerce IDs, for mapping only). `initialStock` ("initial number in stock") and
   `unitOfMeasure` ("unit of measurement") are stored as-is from the old store; no logic depends on them.
+- **Import provenance (admin only):** records imported from the old store carry `importSource` (`ImportSource` in
+  [`catalog.ts`](../src/lib/types/catalog.ts); variations a subset): source currency, source regular/sale price strings and
+  sale dates, source weight/dimension units, the original SKU when a `WC-<id>` SKU was generated, and tax/shipping class
+  slugs that could not be mapped. Values are never converted. When the source currency is not the store currency the
+  record has **no** `basePrice`/`salePrice` and cannot be ordered until a store-currency price is set. Saving through the
+  admin form keeps `importSource`; duplicates drop it; public responses (`GET /products/{slug}`) must omit it.
+- **Descriptions** may contain HTML (imported). The frontend renders `description` through an allowlist sanitizer
+  ([`src/lib/html/sanitize.ts`](../src/lib/html/sanitize.ts): formatting tags only, no attributes/links/scripts); the backend
+  should sanitize on write with the same allowlist. `shortDescription` is plain text.
 - **Writes return the saved `Product`** (create → `201`). Validation failures return `422` with field paths in `error.fields`,
   e.g. `{ "sku": "…", "variations.2.salePrice": "…", "images.0.alt": "…", "defaultAttributes.Size": "…" }`.
 - **Rules the backend must enforce.** The form checks the same (see
@@ -940,6 +949,7 @@ The backend replaces this with a database.
 | Postcode lookup | 12 sample postcodes, clearly labelled; suggestions only | Verified postcode dataset + `GET /locations/postcodes/{code}` |
 | Other admin actions (delivery, reminders) | Read-only tables | §5 mutations |
 | Product & category images | Local files are previewed in the browser only — never uploaded or saved | `POST /admin/media` upload + media host |
+| Imported catalog (development data) | `npm run import:woocommerce` reads the old WooCommerce store (read-only, credentials in `.env.local` only) and saves a fixture (`src/lib/data/fixtures/woocommerce-catalog.json`) plus images in `public/images/products` and `public/images/categories`. The mock catalog seeds from demo records + this fixture; the running site and builds never contact WordPress. See [`woocommerce-import-report.md`](woocommerce-import-report.md) | A real migration into the backend database and media host (same field mapping, `legacyWooId` kept) |
 | Contact form | Not built | Endpoint to be defined |
 | Reminders sending | Data only | Scheduler + email |
 | Branding (name, logo, colors) | Static [`src/config/site.ts`](../src/config/site.ts) | Optional |

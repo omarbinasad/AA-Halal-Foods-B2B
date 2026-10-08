@@ -176,7 +176,11 @@ function LockedPrice({ access }: { access: QuickOrderResult["access"] }) {
 function PriceCell({ row }: { row: QuickOrderResult["rows"][number] }) {
   return (
     <span className="inline-block text-right">
-      {row.price !== undefined ? <span className="font-semibold tabular-nums">{formatMoney(row.price)}</span> : <span className="text-muted">See options</span>}
+      {row.price !== undefined ? (
+        <span className="font-semibold tabular-nums">{formatMoney(row.price)}</span>
+      ) : (
+        <span className="text-muted">{row.priced === false ? "Not available to order yet" : "See options"}</span>
+      )}
       {(row.priceNote || row.minQuantity !== undefined) && (
         <span className="block text-xs text-muted">
           {[row.priceNote, row.minQuantity !== undefined && `min ${row.minQuantity}${row.maxQuantity !== undefined ? `, max ${row.maxQuantity}` : ""}`].filter(Boolean).join(" · ")}

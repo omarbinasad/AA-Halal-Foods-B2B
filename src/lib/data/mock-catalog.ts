@@ -132,14 +132,26 @@ function toSummary(p: Product): ProductSummary {
   };
 }
 
+/** Copy for public responses: import provenance (source prices) is admin-only. */
+function publicProduct(p: Product): Product {
+  const copy = clone(p);
+  delete copy.importSource;
+  for (const v of copy.variations) delete v.importSource;
+  return copy;
+}
+
 const toPick = (p: Product): ProductPick => ({ id: p.id, name: p.name, sku: p.sku, type: p.type, status: p.status, image: p.images[0] });
 
 function filterAndSort(products: Product[], q: ProductListQuery & { type?: string }, allowPriceSort: boolean) {
   const category = q.categorySlug ? mockCategories.find((c) => c.slug === q.categorySlug) : undefined;
   const categoryIds = category ? subtreeIds(category.id) : [];
+  const scopeIds = q.categorySlugs
+    ? new Set(mockCategories.filter((c) => q.categorySlugs!.includes(c.slug)).flatMap((c) => subtreeIds(c.id)))
+    : undefined;
   const filtered = products.filter(
     (p) =>
       (!q.categorySlug || p.categoryIds.some((id) => categoryIds.includes(id))) &&
+      (!scopeIds || p.categoryIds.some((id) => scopeIds.has(id))) &&
       (!q.stockStatus || p.stock.status === q.stockStatus) &&
       (!q.type || p.type === q.type) &&
       matches(q.search, p.name, p.sku, p.gtin, ...p.variations.flatMap((v) => [v.sku, v.gtin])),
@@ -199,6 +211,8 @@ function buildProduct(id: string, input: ProductInput, existing?: Product): Prod
   const base: Omit<Product, "type" | "basePrice" | "salePrice" | "saleFrom" | "saleTo" | "stock" | "attributes" | "defaultAttributes" | "variations"> = {
     id,
     legacyWooId: existing?.legacyWooId,
+    // Import provenance (source prices/units) is kept; the form never edits it.
+    importSource: existing?.importSource,
     slug: input.slug.trim(),
     sku: input.sku.trim(),
     gtin: input.gtin?.trim() || undefined,
@@ -267,6 +281,7 @@ function buildProduct(id: string, input: ProductInput, existing?: Product): Prod
       id: vid,
       legacyWooId: previous.get(vid)?.legacyWooId,
       quantityRule: previous.get(vid)?.quantityRule,
+      importSource: previous.get(vid)?.importSource,
       sku: v.sku.trim(),
       gtin: v.gtin?.trim() || undefined,
       attributes: v.attributes,
@@ -332,7 +347,7 @@ export const mockProductRepository: ProductRepository = {
   },
   async getBySlug(slug) {
     const p = mockProducts.find((x) => x.slug === slug && x.status === "published");
-    return p ? clone(p) : null;
+    return p ? publicProduct(p) : null;
   },
   async listCategories() {
     return mockCategories.filter((c) => c.status === "active");
@@ -363,6 +378,7 @@ export const mockProductRepository: ProductRepository = {
       id: newId,
       // A copy is a new record: it has no counterpart in the old store.
       legacyWooId: undefined,
+      importSource: undefined,
       name: `${source.name} (copy)`,
       slug: uniqueValue(`${source.slug}-copy`, (v) => mockProducts.some((p) => p.slug === v), "-"),
       sku: uniqueValue(`${source.sku}-COPY`, (v) => skus.has(v.toLowerCase()), "-"),
@@ -373,6 +389,7 @@ export const mockProductRepository: ProductRepository = {
         ...clone(v),
         id: `${newId}-v${i + 1}`,
         legacyWooId: undefined,
+        importSource: undefined,
         gtin: undefined,
         sku: uniqueValue(`${v.sku}-COPY`, (s) => skus.has(s.toLowerCase()), "-"),
       })),

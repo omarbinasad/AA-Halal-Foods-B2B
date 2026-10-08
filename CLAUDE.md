@@ -10,7 +10,8 @@ The backend (Laravel or Django) is not chosen yet; all data currently comes from
 - `src/app/(store)` public storefront · `src/app/(auth)` login/register · `src/app/account` customer portal · `src/app/admin` admin panel
 - `src/config/site.ts` brand name, logo, contact, navigation — the only place for branding
 - `src/config/storefront.ts` Home copy and image paths (null → labelled placeholder; files go in /public/images) · `src/components/storefront` Home sections · `src/app/(store)/(pages)` route group gives non-Home store pages their container (URLs unchanged)
-- `public/brand` logo/brand marks · `public/images` fixed site images · product photos come from the backend media host, never the repo
+- `public/brand` logo/brand marks · `public/images` fixed site images · product photos come from the backend media host — the only exception is the development import below (`public/images/products`, `public/images/categories`)
+- `scripts/import-woocommerce.ts` (`npm run import:woocommerce`) development import from the old WooCommerce store → `src/lib/data/fixtures/woocommerce-catalog.json` + local images + `docs/woocommerce-import-report.md`; credentials only in git-ignored `.env.local`; the app and builds never contact WordPress · `src/lib/html/sanitize.ts` allowlist sanitizer for imported HTML
 - `src/app/globals.css` design tokens (colors, radius, charts) as CSS variables, light + `[data-theme="dark"]`; theme script + toggle in `src/components/ui/theme*.tsx`
 - `src/components/ui` shared primitives · `src/components/layout` area navigation · `src/components/<feature>` feature UI
 - `src/lib/types` domain types · `src/lib/data/mock` mock records · `src/lib/data/repositories` interfaces + implementations

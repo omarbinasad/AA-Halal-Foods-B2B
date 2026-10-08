@@ -53,7 +53,7 @@ Product origin (e.g. Japan) is a product attribute, separate from the store loca
 | Brand / tag / attribute / shipping-class management screens | WC | — (selectors use seeded lists) | Yes |
 | Search, filter, pagination | WC | Interactive demo (shop: search, category, availability; admin: search incl. variation SKU, category tree, type, stock, status) | Yes |
 | Sorting | WC | Interactive demo (shop sort select; admin column sorting) | Yes |
-| Import existing products and images | New (migration) | — | Yes |
+| Import existing products and images | New (migration) | Development import only: `npm run import:woocommerce` saves a sample (default 60 products, all 96 categories with hierarchy, brands, tags, local images) as a fixture behind the mock repositories; source prices kept as JPY metadata, products unpriced in BDT. Not the production migration — see docs/woocommerce-import-report.md | Yes |
 
 ## 2. B2B accounts and permissions
 

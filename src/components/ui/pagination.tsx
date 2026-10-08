@@ -29,7 +29,10 @@ export function Pagination({ page, totalPages, pathname, searchParams = {} }: Pa
     return (qs ? `${pathname}?${qs}` : pathname) as Route;
   };
 
-  const box = "inline-flex h-10 min-w-10 items-center justify-center rounded-ui border border-line bg-surface px-3 text-sm";
+  // Colours are kept out of `shape` so the current page never gets two competing backgrounds
+  // (cx only joins classes; with both bg-surface and bg-brand, CSS order decides — white on white).
+  const shape = "inline-flex h-10 min-w-10 items-center justify-center rounded-ui border text-sm";
+  const box = cx(shape, "border-line bg-surface px-3");
 
   return (
     <nav aria-label="Pagination" className="mt-6 flex flex-wrap items-center justify-between gap-2">
@@ -49,7 +52,7 @@ export function Pagination({ page, totalPages, pathname, searchParams = {} }: Pa
                 href={hrefFor(p)}
                 aria-current={p === page ? "page" : undefined}
                 aria-label={`Page ${p}`}
-                className={cx(box, "px-2 tabular-nums", p === page && "border-brand bg-brand text-brand-contrast")}
+                className={cx(shape, "px-2 tabular-nums", p === page ? "border-brand bg-brand font-semibold text-brand-contrast" : "border-line bg-surface hover:bg-surface-muted")}
               >
                 {p}
               </Link>

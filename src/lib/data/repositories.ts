@@ -118,6 +118,8 @@ export type ProductSortField = "name" | "sku" | "price" | "stock" | "updated";
 export interface ProductListQuery extends ListQuery<ProductSortField> {
   /** Includes products in subcategories. */
   categorySlug?: string;
+  /** Limit to products in ANY of these categories (subcategories included); combined with `categorySlug` (AND). */
+  categorySlugs?: string[];
   stockStatus?: StockStatus;
 }
 

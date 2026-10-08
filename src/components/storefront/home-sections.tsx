@@ -51,8 +51,8 @@ export function Hero() {
       <div className="absolute inset-0 -z-10">
         <ImageSlot image={storefrontImages.hero} sizes="100vw" priority placeholder={expectedImageFiles.hero} decorativeAlt="" labelPosition="corner" className="h-full w-full" />
       </div>
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,var(--hero-overlay)_0%,var(--hero-overlay)_42%,transparent_78%)]" />
-      <div className={`${wrap} flex min-h-[26rem] flex-col items-center justify-center pt-24 pb-14 text-center sm:min-h-[30rem] sm:py-14`}>
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_75%_70%_at_center,var(--hero-overlay)_0%,var(--hero-overlay)_50%,transparent_100%)] lg:bg-[radial-gradient(ellipse_40%_70%_at_center,var(--hero-overlay)_0%,var(--hero-overlay)_55%,transparent_100%)]" />
+      <div className={`${wrap} flex min-h-[28rem] flex-col items-center justify-center pt-24 pb-14 text-center sm:min-h-[34rem] sm:py-16`}>
         <Eyebrow>{h.eyebrow}</Eyebrow>
         <h1 id="hero-title" className="mt-3 max-w-3xl font-serif text-4xl leading-tight font-semibold tracking-tight text-brand sm:text-5xl lg:text-6xl">
           {h.title}
@@ -95,8 +95,8 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
     <section id="categories" aria-labelledby="categories-title" className={`${wrap} scroll-mt-40 py-12`}>
       <SectionHeading id="categories-title" eyebrow="Browse our catalog" title="Everything your business needs" action={<ArrowLink href="/shop">View all products</ArrowLink>} />
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {categories.map((c) => (
-          <li key={c.id}>
+        {categories.map((c, i) => (
+          <li key={c.id} className={i >= 6 ? "hidden sm:block" : undefined}>
             <Link href={`/shop?category=${c.slug}`} className="group block h-full overflow-hidden rounded-ui border border-line bg-surface shadow-sm transition hover:border-brand hover:shadow-md">
               <ImageSlot
                 image={c.image ? { src: c.image.src, alt: c.image.alt, width: c.image.width, height: c.image.height } : storefrontImages.categories[c.slug]}

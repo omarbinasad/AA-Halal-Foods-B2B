@@ -15,6 +15,7 @@ import {
 import { QuickOrder } from "@/components/storefront/quick-order";
 import { repositories } from "@/lib/data";
 import { BD_DIVISIONS } from "@/lib/locations";
+import { getHomeCategories } from "@/lib/storefront/home";
 import { loadQuickOrder } from "@/lib/storefront/quick-order";
 import type { DeliveryRoute } from "@/lib/types";
 
@@ -29,24 +30,24 @@ function divisionRoutes(routes: DeliveryRoute[]): DivisionDelivery[] {
 }
 
 export default async function HomePage() {
-  const [categories, quickOrder, routes] = await Promise.all([
-    repositories.products.listCategories(),
+  const [featured, quickOrder, routes] = await Promise.all([
+    // Featured top-level categories (the imported sample catalog; see homeContent.featuredCategories).
+    getHomeCategories(),
     // Resolved per request for the current viewer: prices only for approved customers.
     loadQuickOrder({}),
     repositories.delivery.listRoutes({ perPage: 48 }),
   ]);
-  const roots = categories.filter((c) => !c.parentId).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="bg-surface">
       <Hero />
       <Benefits />
-      <CategoryGrid categories={roots.slice(0, 6)} />
+      <CategoryGrid categories={featured} />
 
       <section id="quick-order" aria-labelledby="quick-order-title" className={`${wrap} scroll-mt-40 pb-12`}>
         <SectionHeading id="quick-order-title" title="Restock faster with quick order" action={<ArrowLink href="/shop">View full catalog</ArrowLink>} />
         <p className="-mt-3 mb-4 text-sm text-muted">Find products by name or SKU.</p>
-        <QuickOrder initial={quickOrder} categories={roots.map((c) => ({ slug: c.slug, name: c.name }))} />
+        <QuickOrder initial={quickOrder} categories={featured.map((c) => ({ slug: c.slug, name: c.name }))} />
       </section>
 
       <BusinessSection />

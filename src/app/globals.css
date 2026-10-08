@@ -51,7 +51,7 @@
   /* Storefront call-to-action (red to deep red) and hero text backdrop */
   --cta-from: #c4314a;
   --cta-to: #5e1424;
-  --hero-overlay: rgb(255 255 255 / 0.86);
+  --hero-overlay: rgb(255 255 255 / 0.74);
 
   --focus: #2563eb;
   --radius: 0.75rem;
@@ -96,7 +96,7 @@
 
   --cta-from: #d4475f;
   --cta-to: #6e1a2d;
-  --hero-overlay: rgb(10 19 17 / 0.84);
+  --hero-overlay: rgb(10 19 17 / 0.72);
 
   --focus: #60a5fa;
   color-scheme: dark;

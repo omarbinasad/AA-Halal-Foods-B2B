@@ -3,6 +3,7 @@ import "server-only";
 import { canSeeWholesalePrices, getViewer } from "@/lib/auth/session";
 import { repositories } from "@/lib/data";
 import { formatWeight } from "@/lib/format";
+import { getHomeCategories } from "@/lib/storefront/home";
 import type { Money, ProductImage, StockInfo } from "@/lib/types";
 
 /** Who is looking — decides what the response may contain. */
@@ -19,6 +20,8 @@ export interface QuickOrderRow {
   /** Approved customers only — never present in other viewers' responses. */
   price?: Money;
   priceNote?: string;
+  /** Approved customers only: false when the product has no store price yet (not orderable). */
+  priced?: boolean;
   minQuantity?: number;
   maxQuantity?: number;
 }
@@ -35,7 +38,8 @@ export const QUICK_ORDER_PAGE_SIZE = 5;
 
 /**
  * Small, paginated product list for the Home "Quick order" panel. Searches name/SKU and
- * filters by category on the server. Wholesale prices and quantity limits are resolved
+ * filters by category on the server, within the categories featured on Home (a category
+ * sent by the browser is only accepted when it is one of them). Wholesale prices and quantity limits are resolved
  * only for approved customers; guests, applicants and admins get product data only.
  */
 export async function loadQuickOrder({ q, category, page = 1 }: { q?: string; category?: string; page?: number }): Promise<QuickOrderResult> {
@@ -43,9 +47,11 @@ export async function loadQuickOrder({ q, category, page = 1 }: { q?: string; ca
   const access: QuickOrderAccess =
     viewer.kind === "admin" ? "admin" : viewer.kind === "customer" ? (canSeeWholesalePrices(viewer) ? "approved" : "pending") : "guest";
 
+  const scope = (await getHomeCategories()).map((c) => c.slug);
   const result = await repositories.products.list({
     search: q?.trim() || undefined,
-    categorySlug: category || undefined,
+    categorySlug: category && scope.includes(category) ? category : undefined,
+    categorySlugs: scope.length ? scope : undefined,
     sort: "name",
     dir: "asc",
     page: Math.max(1, Math.trunc(page) || 1),
@@ -74,6 +80,7 @@ export async function loadQuickOrder({ q, category, page = 1 }: { q?: string; ca
       return {
         ...r,
         price: hasOptions ? undefined : price?.unitPrice,
+        priced: hasOptions || price !== undefined,
         priceNote: hasOptions ? "Price depends on the option" : price?.priceSource === "sale" ? "Sale price" : price?.appliedRuleName ? "Your price" : undefined,
         minQuantity: limits[i]?.min,
         maxQuantity: limits[i]?.max,

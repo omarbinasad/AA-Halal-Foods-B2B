@@ -5,6 +5,33 @@ export interface LegacyRef {
   legacyWooId?: number;
 }
 
+/**
+ * Source values of a record imported from the old store as development data
+ * (`npm run import:woocommerce`). Kept as-is in the source currency and units —
+ * never converted. Prices are copied to `basePrice`/`salePrice` only when the source
+ * currency equals the store currency; otherwise the record stays unpriced (not purchasable)
+ * until a store-currency price is entered. Admin responses only.
+ */
+export interface ImportSource {
+  system: "woocommerce";
+  importedAt: ISODateString;
+  /** ISO 4217 code of the source store, e.g. "JPY". */
+  currency: string;
+  /** Source amounts as strings, exactly as the source API returned them. */
+  regularPrice?: string;
+  salePrice?: string;
+  saleFrom?: string;
+  saleTo?: string;
+  /** Source weight / dimension units (e.g. "kg", "cm"). */
+  weightUnit: string;
+  dimensionUnit: string;
+  /** The source SKU when it was empty or invalid and a generated SKU ("WC-<id>") is used. */
+  sourceSku?: string;
+  /** Source tax / shipping class slugs that could not be mapped. */
+  unmappedTaxClass?: string;
+  unmappedShippingClass?: string;
+}
+
 // --- Taxonomies -----------------------------------------------------------------
 
 export type CategoryStatus = "active" | "hidden";
@@ -187,6 +214,8 @@ export interface ProductVariation extends LegacyRef {
   shippingClassId?: ID;
   taxClass?: TaxClass;
   quantityRule?: QuantityRule;
+  /** Imported records only: the variation's source prices/SKU (see ImportSource). */
+  importSource?: Pick<ImportSource, "regularPrice" | "salePrice" | "saleFrom" | "saleTo" | "sourceSku">;
 }
 
 export interface Product extends LegacyRef, Inventory, Shipping {
@@ -239,6 +268,8 @@ export interface Product extends LegacyRef, Inventory, Shipping {
   menuOrder: number;
   reviewsEnabled: boolean;
   updatedAt: ISODateString;
+  /** Set on records imported from the old store (development fixtures). Admin responses only. */
+  importSource?: ImportSource;
 }
 
 /** Lightweight shape for public listings; keeps list payloads small. */
